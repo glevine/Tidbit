@@ -72,3 +72,23 @@ $GLOBALS['dataTool']['Meetings']['dri_subworkflow_id'] = ['skip' => true];
 $GLOBALS['dataTool']['Meetings']['dri_subworkflow_template_id'] = ['skip' => true];
 $GLOBALS['dataTool']['Meetings']['dri_workflow_task_template_id'] = ['skip' => true];
 $GLOBALS['dataTool']['Meetings']['external_id'] = ['value' => 'null'];
+
+// Meetings are not recurring by default.
+$GLOBALS['dataTool']['Meetings']['repeat_type'] = ['skip' => true];
+$GLOBALS['dataTool']['Meetings']['repeat_interval'] = ['skip' => true];
+$GLOBALS['dataTool']['Meetings']['repeat_dow'] = ['skip' => true];
+$GLOBALS['dataTool']['Meetings']['repeat_until'] = ['skip' => true];
+$GLOBALS['dataTool']['Meetings']['repeat_count'] = ['skip' => true];
+$GLOBALS['dataTool']['Meetings']['repeat_selector'] = ['skip' => true];
+$GLOBALS['dataTool']['Meetings']['repeat_days'] = ['skip' => true];
+$GLOBALS['dataTool']['Meetings']['repeat_month'] = ['skip' => true];
+$GLOBALS['dataTool']['Meetings']['repeat_ordinal'] = ['skip' => true];
+$GLOBALS['dataTool']['Meetings']['repeat_unit'] = ['skip' => true];
+$GLOBALS['dataTool']['Meetings']['repeat_parent_id'] = ['skip' => true];
+$GLOBALS['dataTool']['Meetings']['recurrence_id'] = ['skip' => true];
+$GLOBALS['dataTool']['Meetings']['rset'] = ['skip' => true];
+$GLOBALS['dataTool']['Meetings']['event_type'] = ['skip' => true];
+$GLOBALS['dataTool']['Meetings']['original_start_date'] = ['skip' => true];
+$GLOBALS['dataTool']['Meetings']['date_recurrence_modified'] = ['skip' => true];
+$GLOBALS['dataTool']['Meetings']['recurring_source'] = ['skip' => true];
+$GLOBALS['dataTool']['Meetings']['sequence'] = ['skip' => true];
