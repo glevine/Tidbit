@@ -33,12 +33,18 @@ class MeetingsGenerator extends ModuleGenerator
     {
         $data = parent::generateRecord($n);
 
+        if (!isset($data['data']) || !isset($data['data']['meetings']) || empty($data['data']['meetings'])) {
+            return $data;
+        }
+
         if ($this->seriesCount > 0) {
             // Turn the meeting into a series.
             $data = $this->setSeries($data);
             $data = $this->generateSeries($data);
             $this->seriesCount--;
         }
+
+        return $data;
     }
 
     protected function setSeries($data = []): array
@@ -49,12 +55,12 @@ class MeetingsGenerator extends ModuleGenerator
 
         $data['data']['meetings'][0]['date_recurrence_modified'] = $this->currentDateTime;
         $data['data']['meetings'][0]['event_type'] = "'master'";
-        $data['data']['meetings'][0]['original_start_date'] = "'{$dateStart}'";
+        $data['data']['meetings'][0]['original_start_date'] = "'" . date('Y-m-d H:i:s', $dateStart) . "'";
         $data['data']['meetings'][0]['recurring_source'] = "'Sugar'";
-        $data['data']['meetings'][0]['recurrence_id'] = "'{$dateStart}'";
+        $data['data']['meetings'][0]['recurrence_id'] = "'" . date('Y-m-d H:i:s', $dateStart) . "'";
         $data['data']['meetings'][0]['repeat_type'] = "'Daily'";
         $data['data']['meetings'][0]['repeat_interval'] = 1;
-        $data['data']['meetings'][0]['repeat_count'] = 2000;
+        $data['data']['meetings'][0]['repeat_count'] = $this->occurrenceCount;
         $data['data']['meetings'][0]['repeat_selector'] = "'None'";
         $data['data']['meetings'][0]['repeat_parent_id'] = "''";
         $data['data']['meetings'][0]['rset'] = "'{$rset}'";
@@ -68,25 +74,30 @@ class MeetingsGenerator extends ModuleGenerator
         $masterDateEnd = new \DateTime($this->stripQuotes($data['data']['meetings'][0]['date_end']));
 
         for ($i = 1; $i <= $this->occurrenceCount; $i++) {
-            $occurrenceId = Uuid::uuid4();
+            $seriesId = "'" . $data['id'] . "'";
+            $occurrenceId = "'" . Uuid::uuid4() . "'";
             $dateInterval = new \DateInterval("P{$i}D");
             $dateStart = $masterDateStart->add($dateInterval);
             $dateEnd = $masterDateEnd->add($dateInterval);
 
             $data['data']['meetings'][$i] = $data['data']['meetings'][0];
             $data['data']['meetings'][$i]['id'] = $occurrenceId;
-            $data['data']['meetings'][$i]['date_recurrence_modified'] = "''";
+            $data['data']['meetings'][$i]['date_recurrence_modified'] = 'NULL';
             $data['data']['meetings'][$i]['date_end'] = "'" . $dateEnd->format('Y-m-d H:i:s') . "'";
             $data['data']['meetings'][$i]['date_start'] = "'" . $dateStart->format('Y-m-d H:i:s') . "'";
             $data['data']['meetings'][$i]['event_type'] = "'occurrence'";
             $data['data']['meetings'][$i]['original_start_date'] = "'" . $dateStart->format('Y-m-d H:i:s') . "'";
-            $data['data']['meetings'][$i]['repeat_parent_id'] = $data['id'];
+            $data['data']['meetings'][$i]['repeat_parent_id'] = $seriesId;
             $data['data']['meetings'][$i]['rset'] = "''";
 
             $guestTables = ['meetings_contacts', 'meetings_leads', 'meetings_users'];
 
             foreach ($guestTables as $relTable) {
                 $rows = [];
+
+                if (!isset($data['data'][$relTable])) {
+                    continue;
+                }
 
                 foreach ($data['data'][$relTable] as $row) {
                     $guestRow = $row;
@@ -98,6 +109,8 @@ class MeetingsGenerator extends ModuleGenerator
                 $data['data'][$relTable] = array_merge($data['data'][$relTable], $rows);
             }
         }
+
+        return $data;
     }
 
     private function stripQuotes(string $value): string
