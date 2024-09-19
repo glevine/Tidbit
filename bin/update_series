@@ -1,0 +1,67 @@
+#!/usr/bin/env php
+<?php
+function checkAutoloader()
+{
+    $files = [
+        __DIR__ . '/../../../autoload.php',  // composer dependency
+        __DIR__ . '/../vendor/autoload.php', // stand-alone package
+    ];
+
+    foreach ($files as $file) {
+        if (is_file($file)) {
+            require_once $file;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+if (!checkAutoloader()) {
+    die(
+        'You need to set up the project dependencies using the following commands:' . PHP_EOL .
+        'curl -sS https://getcomposer.org/installer | php' . PHP_EOL .
+        'php composer.phar install' . PHP_EOL
+    );
+}
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+ini_set('memory_limit', '8096M');
+set_time_limit(0);
+
+$sugarPath = __DIR__ . '/../..';
+
+define('SUGAR_PATH', $sugarPath);
+
+if (!defined('sugarEntry')) {
+    define('sugarEntry', true);
+}
+
+chdir(SUGAR_PATH); // needed because we have check in entryPoint.php (if file_exists('config.php'))
+
+require_once SUGAR_PATH . '/include/entryPoint.php';
+require_once SUGAR_PATH . '/config.php';
+require_once SUGAR_PATH . '/include/modules.php';
+require_once SUGAR_PATH . '/include/utils.php';
+require_once SUGAR_PATH . '/include/database/DBManagerFactory.php';
+require_once SUGAR_PATH . '/include/utils/db_utils.php';
+
+global $current_user;
+$current_user = BeanFactory::newBean('Users');
+$current_user->getSystemUser();
+
+$seed = BeanFactory::newBean('Meetings');
+
+$sq = new SugarQuery();
+$sq->from($seed);
+$sq->select(['id']);
+$sq->where()->equals('event_type', 'master');
+$rows = $sq->execute();
+
+foreach ($rows as $row) {
+    $series = BeanFactory::retrieveBean('Meetings', $row['id']);
+    $occurrences = $series->saveRecurringEvents();
+    print('saved ' . count($occurrences) . ' occurrences for series ' . $series->id . PHP_EOL);
+}
